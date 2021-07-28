@@ -25,7 +25,8 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.util.artifact.JavaScopes;
-import org.eclipse.collections.api.multimap.MutableMultimap;
+import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.multimap.list.MutableListMultimap;
 import org.eclipse.collections.impl.factory.Multimaps;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -96,7 +97,7 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
 
   static final class ClassAggregation {
 
-    private final MutableMultimap<String, Artifact> classesToArtifacts;
+    private final MutableListMultimap<String, Artifact> classesToArtifacts;
 
     ClassAggregation() {
       this.classesToArtifacts = Multimaps.mutable.list.empty();
@@ -107,7 +108,8 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
       this.classesToArtifacts.put(path, artifact);
     }
 
-    void getDuplicateClasses() {
+    MutableListMultimap<String, Artifact> getDuplicateClasses() {
+      return this.classesToArtifacts.selectKeysMultiValues((path, artifacts) -> ((RichIterable<?>) artifacts).size() > 2);
     }
 
     static String toClassName(String path) {
