@@ -33,7 +33,10 @@ public class DuplicateDependenciesMojoTests {
     MavenExecution execution = this.mavenRuntime.forProject(basedir);
 
     MavenExecutionResult result = execution.execute("clean", "verify");
-    result.assertErrorFreeLog();
+    result.assertLogText("The class: javax.servlet.Servlet is present in the artifacts: "
+            + "org.jboss.spec.javax.servlet:jboss-servlet-api_4.0_spec, "
+            + "javax.servlet:servlet-api, javax.servlet:javax.servlet-api, jakarta.servlet:jakarta.servlet-api");
+    result.assertLogText("BUILD FAILURE");
   }
 
 }

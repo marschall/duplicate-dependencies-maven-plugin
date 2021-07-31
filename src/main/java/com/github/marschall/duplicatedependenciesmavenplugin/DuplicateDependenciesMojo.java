@@ -4,11 +4,11 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.VERIFY;
 import static org.apache.maven.plugins.annotations.ResolutionScope.RUNTIME;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -18,14 +18,15 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.DefaultDependencyResolutionRequest;
 import org.apache.maven.project.DependencyResolutionException;
+import org.apache.maven.project.DependencyResolutionRequest;
 import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.multimap.list.MutableListMultimap;
 import org.eclipse.collections.impl.factory.Multimaps;
 import org.sonatype.plexus.build.incremental.BuildContext;
@@ -60,19 +61,29 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
       return;
     }
 
-    DefaultDependencyResolutionRequest request = new DefaultDependencyResolutionRequest();
-    request.setMavenProject(this.project);
-    request.setRepositorySession(this.repositorySession);
-    request.setResolutionFilter(new org.eclipse.aether.util.filter.ScopeDependencyFilter(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME), Arrays.asList(JavaScopes.TEST, JavaScopes.PROVIDED)));
+    List<Dependency> dependencies = this.resolveDependencies();
 
-    DependencyResolutionResult result;
-    try {
-      result = this.resolver.resolve(request);
-    } catch (DependencyResolutionException e) {
-      throw new MojoExecutionException("could not resolve dependencies", e);
+    ClassAggregation aggregation = this.aggregateClasses(dependencies);
+    MutableListMultimap<String,Artifact> duplicateClasses = aggregation.getDuplicateClasses();
+    if (!duplicateClasses.isEmpty()) {
+      for (String duplicateClass : duplicateClasses.keysView().toSortedSet()) {
+        MutableList<Artifact> artifacts = duplicateClasses.get(duplicateClass);
+        //formatter:off
+        String artifactsString = artifacts.stream()
+                                          .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())
+                                          .collect(Collectors.joining(", "));
+        //formatter:on
+        this.getLog().warn("The class: " + duplicateClass + " is present in the artifacts: " + artifactsString);
+      }
+
+      MojoFailureException exception = new MojoFailureException("duplicate classes in dependencies detected");
+      this.buildContext.addMessage(null, 0, 0, ROLE, BuildContext.SEVERITY_ERROR, exception);
+      throw exception;
     }
+  }
 
-    List<Dependency> dependencies = result.getDependencies();
+  private ClassAggregation aggregateClasses(List<Dependency> dependencies)
+          throws MojoExecutionException {
     ClassAggregation aggregation = new ClassAggregation();
     for (Dependency dependency : dependencies) {
       Artifact artifact = dependency.getArtifact();
@@ -92,7 +103,29 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
         }
       }
     }
+    return aggregation;
+  }
 
+  private List<Dependency> resolveDependencies() throws MojoExecutionException {
+    DependencyResolutionRequest request = this.newDependencyResolutionRequest();
+
+    DependencyResolutionResult result;
+    try {
+      result = this.resolver.resolve(request);
+    } catch (DependencyResolutionException e) {
+      throw new MojoExecutionException("could not resolve dependencies", e);
+    }
+
+    List<Dependency> dependencies = result.getDependencies();
+    return dependencies;
+  }
+
+  private DependencyResolutionRequest newDependencyResolutionRequest() {
+    DefaultDependencyResolutionRequest request = new DefaultDependencyResolutionRequest();
+    request.setMavenProject(this.project);
+    request.setRepositorySession(this.repositorySession);
+    request.setResolutionFilter(new CompileOrRuntimeDependencyFilter());
+    return request;
   }
 
   static final class ClassAggregation {
@@ -109,7 +142,14 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     }
 
     MutableListMultimap<String, Artifact> getDuplicateClasses() {
-      return this.classesToArtifacts.selectKeysMultiValues((path, artifacts) -> ((RichIterable<?>) artifacts).size() > 2);
+      MutableListMultimap<String, Artifact> result = Multimaps.mutable.list.empty();
+      this.classesToArtifacts.forEachKeyMultiValues((path, values) -> {
+        RichIterable<?> artifacts = (RichIterable<?>) values;
+        if (artifacts.size() > 1) {
+          result.putAll(toClassName(path), (Iterable<? extends Artifact>) artifacts);
+        }
+      });
+      return result;
     }
 
     static String toClassName(String path) {
