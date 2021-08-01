@@ -28,7 +28,7 @@ public class DuplicateDependenciesMojoTests {
   }
 
   @Test
-  public void testBasic() throws Exception {
+  public void duplicateClasses() throws Exception {
     File basedir = this.resources.getBasedir("servlets");
     MavenExecution execution = this.mavenRuntime.forProject(basedir);
 
@@ -37,6 +37,15 @@ public class DuplicateDependenciesMojoTests {
             + "org.jboss.spec.javax.servlet:jboss-servlet-api_4.0_spec, "
             + "javax.servlet:servlet-api, javax.servlet:javax.servlet-api, jakarta.servlet:jakarta.servlet-api");
     result.assertLogText("BUILD FAILURE");
+  }
+
+  @Test
+  public void scopeProvided() throws Exception {
+    File basedir = this.resources.getBasedir("jcl");
+    MavenExecution execution = this.mavenRuntime.forProject(basedir);
+
+    MavenExecutionResult result = execution.execute("clean", "verify");
+    result.assertErrorFreeLog();
   }
 
 }
