@@ -124,7 +124,7 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     DefaultDependencyResolutionRequest request = new DefaultDependencyResolutionRequest();
     request.setMavenProject(this.project);
     request.setRepositorySession(this.repositorySession);
-    request.setResolutionFilter(new CompileOrRuntimeDependencyFilter());
+    request.setResolutionFilter(CompileOrRuntimeDependencyFilter.INSTANCE);
     return request;
   }
 

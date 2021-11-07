@@ -10,7 +10,13 @@ import org.eclipse.aether.util.artifact.JavaScopes;
 /**
  * A dependency filter that only allows {@value JavaScopes#COMPILE} and {@value JavaScopes#RUNTIME}.
  */
-public final class CompileOrRuntimeDependencyFilter implements DependencyFilter {
+final class CompileOrRuntimeDependencyFilter implements DependencyFilter {
+
+  static final DependencyFilter INSTANCE = new CompileOrRuntimeDependencyFilter();
+
+  private CompileOrRuntimeDependencyFilter() {
+    super();
+  }
 
   @Override
   public boolean accept(DependencyNode node, List<DependencyNode> parents) {
@@ -22,24 +28,6 @@ public final class CompileOrRuntimeDependencyFilter implements DependencyFilter 
 
     String scope = node.getDependency().getScope();
     return scope.equals(JavaScopes.COMPILE) || scope.equals(JavaScopes.RUNTIME);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (!(obj instanceof CompileOrRuntimeDependencyFilter)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return CompileOrRuntimeDependencyFilter.class.hashCode();
   }
 
 }
