@@ -116,8 +116,7 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
       throw new MojoExecutionException("could not resolve dependencies", e);
     }
 
-    List<Dependency> dependencies = result.getDependencies();
-    return dependencies;
+    return result.getDependencies();
   }
 
   private DependencyResolutionRequest newDependencyResolutionRequest() {
