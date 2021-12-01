@@ -12,7 +12,7 @@ Usage
     <plugin>
       <groupId>com.github.marschall</groupId>
       <artifactId>duplicate-dependencies-maven-plugin</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <executions>
         <execution>
           <id>verify</id>
