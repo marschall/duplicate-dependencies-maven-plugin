@@ -25,3 +25,5 @@ Usage
   </plugins>
 </build>
 ```
+
+For more information see the [plugin page](https://marschall.github.io/duplicate-dependencies-maven-plugin/).
