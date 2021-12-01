@@ -26,7 +26,7 @@
     <div id="breadcrumbs">
       <div class="xleft">
         <span id="publishDate">Last Published: 2021-12-01</span>
-          &#xA0;| <span id="projectVersion">Version: 1.0.0</span>
+          &#xA0;| <span id="projectVersion">Version: 1.0.1</span>
       </div>
       <div class="xright"><a href="./" title="Duplicate Dependencies Maven Plugin">Duplicate Dependencies Maven Plugin</a>      </div>
       <div class="clear">
@@ -54,7 +54,7 @@
       
 <p><b>Full name</b>:</p>
       
-<p>com.github.marschall:duplicate-dependencies-maven-plugin:1.0.0:detect-duplicate-dependencies</p>
+<p>com.github.marschall:duplicate-dependencies-maven-plugin:1.0.1:detect-duplicate-dependencies</p>
       
 <p><b>Description</b>:</p>
       
@@ -68,6 +68,8 @@ located in a folder. Runs during a normal Maven build.</div>
 <li>Requires a Maven project to be executed.</li>
         
 <li>Requires dependency resolution of artifacts in scope: <code>runtime</code>.</li>
+        
+<li>The goal is thread-safe and supports parallel builds.</li>
         
 <li>Binds by default to the <a class="externalLink" href="http://maven.apache.org/ref/current/maven-core/lifecycles.html">lifecycle phase</a>: <code>verify</code>.</li>
       </ul>
