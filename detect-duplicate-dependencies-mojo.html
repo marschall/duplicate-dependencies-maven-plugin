@@ -26,7 +26,7 @@
     <div id="breadcrumbs">
       <div class="xleft">
         <span id="publishDate">Last Published: 2021-12-01</span>
-          &#xA0;| <span id="projectVersion">Version: 1.0.1</span>
+          &#xA0;| <span id="projectVersion">Version: 1.1.0</span>
       </div>
       <div class="xright"><a href="./" title="Duplicate Dependencies Maven Plugin">Duplicate Dependencies Maven Plugin</a>      </div>
       <div class="clear">
@@ -54,7 +54,7 @@
       
 <p><b>Full name</b>:</p>
       
-<p>com.github.marschall:duplicate-dependencies-maven-plugin:1.0.1:detect-duplicate-dependencies</p>
+<p>com.github.marschall:duplicate-dependencies-maven-plugin:1.1.0:detect-duplicate-dependencies</p>
       
 <p><b>Description</b>:</p>
       
@@ -91,30 +91,34 @@ located in a folder. Runs during a normal Maven build.</div>
           
 <tr class="b">
             
-<td><code><a href="#repositorySession">&lt;repositorySession&gt;</a></code></td>
+<td><code><a href="#excludes">&lt;excludes&gt;</a></code></td>
             
-<td><code>RepositorySystemSession</code></td>
+<td><code>List</code></td>
             
-<td><code>-</code></td>
+<td><code>1.1.0</code></td>
             
-<td>(no description)<br /><b>Default value is</b>: <code>${repositorySystemSession}</code>.<br /></td>
+<td>List of artifacts to be excluded in the form of
+<code>groupId:artifactId:type:classifier</code>.<br /><b>User property is</b>: <code>excludes</code>.<br /></td>
           </tr>
         </table>
       </section>
       <section>
 <h3><a name="Parameter_Details"></a>Parameter Details</h3>
         <section>
-<h4><a name="a.3CrepositorySession.3E"></a><b><a name="repositorySession">&lt;repositorySession&gt;</a></b></h4>
+<h4><a name="a.3Cexcludes.3E"></a><b><a name="excludes">&lt;excludes&gt;</a></b></h4>
         
-<div>(no description)</div>
+<div>List of artifacts to be excluded in the form of
+<code>groupId:artifactId:type:classifier</code>.</div>
         
 <ul>
           
-<li><b>Type</b>: <code>org.eclipse.aether.RepositorySystemSession</code></li>
+<li><b>Type</b>: <code>java.util.List</code></li>
+          
+<li><b>Since</b>: <code>1.1.0</code></li>
           
 <li><b>Required</b>: <code>No</code></li>
           
-<li><b>Default</b>: <code>${repositorySystemSession}</code></li>
+<li><b>User Property</b>: <code>excludes</code></li>
         </ul>
       </section></section>
     </section>
