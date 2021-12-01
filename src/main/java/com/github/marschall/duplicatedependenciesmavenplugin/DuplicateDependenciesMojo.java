@@ -25,6 +25,9 @@ import org.apache.maven.project.ProjectDependenciesResolver;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyFilter;
+import org.eclipse.aether.util.filter.AndDependencyFilter;
+import org.eclipse.aether.util.filter.PatternExclusionsDependencyFilter;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.multimap.list.MutableListMultimap;
@@ -49,11 +52,19 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
-  @Parameter(defaultValue = "${repositorySystemSession}")
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
   private RepositorySystemSession repositorySession;
 
   @Component
   private BuildContext buildContext;
+
+  /**
+   * List of artifacts to be excluded in the form of {@code groupId:artifactId:type:classifier}.
+   *
+   * @since 1.1.0
+   */
+  @Parameter(property = "excludes")
+  private List<String> excludes;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -64,7 +75,7 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     List<Dependency> dependencies = this.resolveDependencies();
 
     ClassAggregation aggregation = this.aggregateClasses(dependencies);
-    MutableListMultimap<String,Artifact> duplicateClasses = aggregation.getDuplicateClasses();
+    MutableListMultimap<String, Artifact> duplicateClasses = aggregation.getDuplicateClasses();
     if (!duplicateClasses.isEmpty()) {
       for (String duplicateClass : duplicateClasses.keysView().toSortedSet()) {
         MutableList<Artifact> artifacts = duplicateClasses.get(duplicateClass);
@@ -123,8 +134,18 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     DefaultDependencyResolutionRequest request = new DefaultDependencyResolutionRequest();
     request.setMavenProject(this.project);
     request.setRepositorySession(this.repositorySession);
-    request.setResolutionFilter(CompileOrRuntimeDependencyFilter.INSTANCE);
+    request.setResolutionFilter(this.buildDependencyFilter());
     return request;
+  }
+
+  private DependencyFilter buildDependencyFilter() {
+    if (this.excludes.isEmpty()) {
+      return CompileOrRuntimeDependencyFilter.INSTANCE;
+    } else {
+      return new AndDependencyFilter(
+              CompileOrRuntimeDependencyFilter.INSTANCE,
+              new PatternExclusionsDependencyFilter(this.excludes));
+    }
   }
 
   static final class ClassAggregation {
@@ -136,14 +157,14 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     }
 
     void addClass(String path, Artifact artifact) {
-      // use the JAR path and to the translation to class names only for the duplicates
+      // use the JAR path, do the translation to class names only for the duplicates
       this.classesToArtifacts.put(path, artifact);
     }
 
     MutableListMultimap<String, Artifact> getDuplicateClasses() {
       MutableListMultimap<String, Artifact> result = Multimaps.mutable.list.empty();
       this.classesToArtifacts.forEachKeyMultiValues((path, values) -> {
-        RichIterable<?> artifacts = (RichIterable<?>) values;
+        RichIterable<?> artifacts = values;
         if (artifacts.size() > 1) {
           result.putAll(toClassName(path), (Iterable<? extends Artifact>) artifacts);
         }

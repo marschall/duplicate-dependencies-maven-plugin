@@ -15,7 +15,7 @@ import io.takari.maven.testing.executor.MavenVersions;
 import io.takari.maven.testing.executor.junit.MavenJUnitTestRunner;
 
 @RunWith(MavenJUnitTestRunner.class)
-@MavenVersions("3.8.3")
+@MavenVersions("3.8.4")
 public class DuplicateDependenciesMojoTests {
 
   @Rule
@@ -24,7 +24,9 @@ public class DuplicateDependenciesMojoTests {
   private final MavenRuntime mavenRuntime;
 
   public DuplicateDependenciesMojoTests(MavenRuntimeBuilder builder) throws Exception {
-    this.mavenRuntime = builder.build();
+    this.mavenRuntime = builder
+            .withCliOptions("--batch-mode")
+            .build();
   }
 
   @Test
@@ -42,6 +44,15 @@ public class DuplicateDependenciesMojoTests {
   @Test
   public void scopeProvided() throws Exception {
     File basedir = this.resources.getBasedir("jcl");
+    MavenExecution execution = this.mavenRuntime.forProject(basedir);
+
+    MavenExecutionResult result = execution.execute("clean", "verify");
+    result.assertErrorFreeLog();
+  }
+
+  @Test
+  public void excludes() throws Exception {
+    File basedir = this.resources.getBasedir("jakarta-json");
     MavenExecution execution = this.mavenRuntime.forProject(basedir);
 
     MavenExecutionResult result = execution.execute("clean", "verify");
