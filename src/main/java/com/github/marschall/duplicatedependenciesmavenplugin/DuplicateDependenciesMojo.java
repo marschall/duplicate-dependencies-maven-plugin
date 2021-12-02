@@ -105,7 +105,7 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
           while (entries.hasMoreElements()) {
             JarEntry entry = entries.nextElement();
             String name = entry.getName();
-            if (name.endsWith(".class") && !name.startsWith("META-INF/versions")) {
+            if (name.endsWith(".class") && !name.equals("module-info.class") && !name.startsWith("META-INF/versions")) {
               aggregation.addClass(name, artifact);
             }
           }

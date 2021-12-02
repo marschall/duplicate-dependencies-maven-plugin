@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.github.marschall.unit</groupId>
+  <artifactId>project-to-test</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>Test Duplicate Dependencies Maven Plugin</name>
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.github.marschall</groupId>
+      <artifactId>jfr-jdbctemplate</artifactId>
+      <version>0.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.marschall</groupId>
+      <artifactId>legacy-compatibility-ssl-socket-factory</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.marschall</groupId>
+        <artifactId>duplicate-dependencies-maven-plugin</artifactId>
+        <version>${it-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>detect-duplicate-dependencies</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

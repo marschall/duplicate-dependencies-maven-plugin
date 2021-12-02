@@ -59,4 +59,13 @@ public class DuplicateDependenciesMojoTests {
     result.assertErrorFreeLog();
   }
 
+  @Test
+  public void moduleInfo() throws Exception {
+    File basedir = this.resources.getBasedir("module-info");
+    MavenExecution execution = this.mavenRuntime.forProject(basedir);
+
+    MavenExecutionResult result = execution.execute("clean", "verify");
+    result.assertErrorFreeLog();
+  }
+
 }
