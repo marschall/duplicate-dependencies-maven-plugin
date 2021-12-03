@@ -3,6 +3,7 @@ package com.github.marschall.duplicatedependenciesmavenplugin;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.VERIFY;
 import static org.apache.maven.plugins.annotations.ResolutionScope.RUNTIME;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.List;
@@ -54,6 +55,9 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
 
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
   private RepositorySystemSession repositorySession;
+  
+  @Parameter(defaultValue = "false", property = "duplicateDependencies.skip")
+  private boolean skip;
 
   @Component
   private BuildContext buildContext;
@@ -88,7 +92,7 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
       }
 
       MojoFailureException exception = new MojoFailureException("duplicate classes in dependencies detected");
-      this.buildContext.addMessage(null, 0, 0, ROLE, BuildContext.SEVERITY_ERROR, exception);
+      this.buildContext.addMessage(new File("pom.xml"), 0, 0, ROLE, BuildContext.SEVERITY_ERROR, exception);
       throw exception;
     }
   }
