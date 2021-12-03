@@ -55,9 +55,6 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
 
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
   private RepositorySystemSession repositorySession;
-  
-  @Parameter(defaultValue = "false", property = "duplicateDependencies.skip")
-  private boolean skip;
 
   @Component
   private BuildContext buildContext;
@@ -69,6 +66,14 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
    */
   @Parameter(property = "excludes")
   private List<String> excludes;
+
+  /**
+   * Whether plugin execution should be skipped.
+   *
+   * @since 1.2.0
+   */
+  @Parameter(defaultValue = "false", property = "duplicateDependencies.skip")
+  private boolean skip;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
