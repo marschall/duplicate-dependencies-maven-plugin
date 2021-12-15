@@ -5,8 +5,11 @@ import static org.apache.maven.plugins.annotations.ResolutionScope.RUNTIME;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -30,8 +33,9 @@ import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.util.filter.AndDependencyFilter;
 import org.eclipse.aether.util.filter.PatternExclusionsDependencyFilter;
 import org.eclipse.collections.api.RichIterable;
-import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.bag.sorted.MutableSortedBag;
 import org.eclipse.collections.api.multimap.list.MutableListMultimap;
+import org.eclipse.collections.api.multimap.sortedbag.MutableSortedBagMultimap;
 import org.eclipse.collections.impl.factory.Multimaps;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -84,10 +88,10 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     List<Dependency> dependencies = this.resolveDependencies();
 
     ClassAggregation aggregation = this.aggregateClasses(dependencies);
-    MutableListMultimap<String, Artifact> duplicateClasses = aggregation.getDuplicateClasses();
+    MutableSortedBagMultimap<String, Artifact> duplicateClasses = aggregation.getDuplicateClasses();
     if (!duplicateClasses.isEmpty()) {
-      for (String duplicateClass : duplicateClasses.keysView().toSortedSet()) {
-        MutableList<Artifact> artifacts = duplicateClasses.get(duplicateClass);
+      for (String duplicateClass : duplicateClasses.keysView().toBag()) {
+        MutableSortedBag<Artifact> artifacts = duplicateClasses.get(duplicateClass);
         //formatter:off
         String artifactsString = artifacts.stream()
                                           .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())
@@ -102,25 +106,27 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     }
   }
 
-  private ClassAggregation aggregateClasses(List<Dependency> dependencies)
-          throws MojoExecutionException {
+  private ClassAggregation aggregateClasses(List<Dependency> dependencies) throws MojoExecutionException {
     ClassAggregation aggregation = new ClassAggregation();
-    for (Dependency dependency : dependencies) {
-      Artifact artifact = dependency.getArtifact();
-      if (artifact.getExtension().equals("jar")) {
-        try (JarFile jarFile = new JarFile(artifact.getFile())) {
-          // TODO Java 9 #asIterator
-          Enumeration<JarEntry> entries = jarFile.entries();
-          while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-            String name = entry.getName();
-            if (name.endsWith(".class") && !name.equals("module-info.class") && !name.startsWith("META-INF/versions")) {
-              aggregation.addClass(name, artifact);
-            }
+    //@formatter:off
+    Set<Artifact> artifacts = dependencies.stream()
+                                          .map(Dependency::getArtifact)
+                                          .filter(artifact -> artifact.getExtension().equals("jar"))
+                                          .collect(Collectors.toCollection(() -> new TreeSet<>(artifactComparator())));
+    //@formatter:on
+    for (Artifact artifact : artifacts) {
+      try (JarFile jarFile = new JarFile(artifact.getFile())) {
+        // TODO Java 9 #asIterator
+        Enumeration<JarEntry> entries = jarFile.entries();
+        while (entries.hasMoreElements()) {
+          JarEntry entry = entries.nextElement();
+          String name = entry.getName();
+          if (name.endsWith(".class") && !name.equals("module-info.class") && !name.startsWith("META-INF/versions")) {
+            aggregation.addClass(name, artifact);
           }
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not open jar of: " + artifact, e);
         }
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not open jar of: " + artifact, e);
       }
     }
     return aggregation;
@@ -157,6 +163,12 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
     }
   }
 
+  static Comparator<Artifact> artifactComparator() {
+    return Comparator
+                     .comparing(Artifact::getGroupId)
+                     .thenComparing(Artifact::getArtifactId);
+  }
+
   static final class ClassAggregation {
 
     private final MutableListMultimap<String, Artifact> classesToArtifacts;
@@ -170,8 +182,8 @@ public class DuplicateDependenciesMojo extends AbstractMojo {
       this.classesToArtifacts.put(path, artifact);
     }
 
-    MutableListMultimap<String, Artifact> getDuplicateClasses() {
-      MutableListMultimap<String, Artifact> result = Multimaps.mutable.list.empty();
+    MutableSortedBagMultimap<String, Artifact> getDuplicateClasses() {
+      MutableSortedBagMultimap<String, Artifact> result = Multimaps.mutable.sortedBag.empty(artifactComparator());
       this.classesToArtifacts.forEachKeyMultiValues((path, values) -> {
         RichIterable<?> artifacts = values;
         if (artifacts.size() > 1) {
