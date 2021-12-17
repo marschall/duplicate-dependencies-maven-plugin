@@ -1,4 +1,4 @@
-Duplicate Dependencies Maven Plugin
+Duplicate Dependencies Maven Plugin  [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.marschall/duplicate-dependencies-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.marschall/duplicate-dependencies-maven-plugin)
 ===================================
 
 Detects duplicate dependencies with different coordinates for example `org.springframework:spring-jcl` and `commons-logging:commons-logging`.
@@ -12,7 +12,7 @@ Usage
     <plugin>
       <groupId>com.github.marschall</groupId>
       <artifactId>duplicate-dependencies-maven-plugin</artifactId>
-      <version>1.0.1</version>
+      <version>1.3.0</version>
       <executions>
         <execution>
           <id>verify</id>
