@@ -40,8 +40,8 @@ import org.eclipse.collections.impl.factory.Multimaps;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
- * Generates a PKCS12 truststore from a collection of certificates located in a folder.
- * Runs during a normal Maven build.
+ * Detects duplicate dependencies with different coordinates. Fails the build
+ * if some of them are found.
  */
 @Mojo(
   name = "detect-duplicate-dependencies",

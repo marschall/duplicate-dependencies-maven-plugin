@@ -42,7 +42,7 @@
 
   <ciManagement>
     <system>Travis CI</system>
-    <url>https://travis-ci.org/marschall/duplicate-dependencies-maven-plugin</url>
+    <url>https://app.travis-ci.com/github/marschall/duplicate-dependencies-maven-plugin</url>
   </ciManagement>
 
   <scm>
